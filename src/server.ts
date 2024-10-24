@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import app from './app';
 import { SERVER_PORT, MONGODB } from './config/config';
 
-const DB = MONGODB.DATABASE.replace('<USERNAME', MONGODB.DB_USERNAME).replace(
+const DB = MONGODB.DATABASE.replace('<USERNAME>', MONGODB.DB_USERNAME).replace(
   '<PASSWORD>',
   MONGODB.DB_PASSWORD,
 );
