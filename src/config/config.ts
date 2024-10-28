@@ -15,3 +15,5 @@ export const MONGODB = {
   DB_PASSWORD,
   DATABASE,
 };
+
+export const MAPBOX_API_KEY = process.env.MAPBOX_API_KEY || '';

@@ -5,7 +5,17 @@ import Store from '../models/storeModel';
 import RequestParamsCep from '../types/requestParamsCep';
 import catchAsync from '../utils/catchAsync';
 import UserResponseData from '../types/userResponseData';
+import geocoder from './../utils/geocoder';
 
+async function geocodeCep(address: string) {
+  const response = await geocoder.geocode(address);
+
+  const coord = {
+    lat: response[0].latitude,
+    lon: response[0].longitude,
+  };
+  return coord;
+}
 async function getAllStores(req: Request, res: Response, next: NextFunction) {
   const lojas = await Store.find();
 
@@ -34,14 +44,16 @@ export async function getStoresInRadius(
       `http://viacep.com.br/ws/${userCep}/json/`,
     );
 
-    const rData: UserResponseData = r.data;
-    const userResponse = (rData) => {
-      rData.forEach((element) => {});
+    const userResponse: UserResponseData = {
+      cep: r.data.cep,
+      logradouro: r.data.logradouro,
+      bairro: r.data.localidade,
+      localidade: r.data.localidade,
+      uf: r.data.uf,
     };
-
     res.status(200).json({
       status: 'success',
-      data: r.data,
+      data: userResponse,
     });
   } catch (err) {
     console.log(err);
