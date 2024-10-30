@@ -1,16 +1,16 @@
 import { Router } from 'express';
 import {
-  createStoreAsync,
-  getAllStoresAsync,
+  createStore,
+  getAllStores,
   getStoresInRadius,
+  updateStore,
 } from '../controllers/storeController';
 
 const router = Router();
 
-router.get('/', getAllStoresAsync);
+router.route('/').get(getAllStores).post(createStore);
 
-router.post('/', createStoreAsync);
-
-router.get<{ cep: string }>('/:cep', getStoresInRadius);
+router.route('/:id').patch(updateStore);
+router.get('/:cep', getStoresInRadius);
 
 export default router;

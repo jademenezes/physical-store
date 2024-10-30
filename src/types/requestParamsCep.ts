@@ -1,3 +1,3 @@
-export default interface RequestParamsCep {
+export default interface RequestParamsCep extends Request {
   cep: string;
 }
