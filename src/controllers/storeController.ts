@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import Store from '../models/storeModel';
 import RequestParamsCep from '../types/requestParamsCep';
+import { RequestParamsStore, RequestBodyStore } from '../types/updateStore';
 import catchAsync from '../utils/catchAsync';
 import UserResponseData from '../types/userResponseData';
 import geocoder from './../utils/geocoder';
@@ -67,6 +68,25 @@ async function createStore(req: Request, res: Response, next: NextFunction) {
     status: 'success',
     loja: newStore,
   });
+}
+
+async function updateStore(
+  req: Request<RequestParamsStore, {}, RequestBodyStore>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const store = await Store.findByIdAndUpdate(req.params.id, req.body);
+
+    if (!store) {
+      return next(new Error('Nenhuma loja encontrada com essa ID!'));
+    }
+  } catch (err) {
+    res.status(404).json({
+      status: 'failed',
+      message: err,
+    });
+  }
 }
 
 export const getAllStoresAsync = catchAsync(getAllStores);
