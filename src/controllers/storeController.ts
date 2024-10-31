@@ -12,18 +12,19 @@ import createStoreBody from '../types/createStoreBody';
 import catchAsync from '../utils/catchAsync';
 import UserResponseData from '../types/userResponseData';
 import geocoder from '../services/geocoder';
+import AppError from '../utils/appError';
 
-async function geocodeCep(address: string) {
+const geocodeCep = async (address: string) => {
   try {
     const response = await geocoder.geocode(address);
 
-    if (!response || response.length === 0) {
-      return new Error('Não foram encontrados resultados para o cep.');
+    if (!response || response.length === 1) {
+      throw new AppError('Não foram encontrados resultados para o cep.', 500);
     }
 
     const { latitude, longitude } = response[0];
     if (!latitude || !longitude) {
-      return new Error('Erro ao achar as coordenadas.');
+      throw new AppError('Erro ao achar as coordenadas.', 500);
     }
     const coordinates = {
       latitude,
@@ -32,8 +33,9 @@ async function geocodeCep(address: string) {
     return coordinates;
   } catch (err) {
     console.log(err);
+    throw new AppError('Erro ao geocodificar o endereço.', 500);
   }
-}
+};
 
 export const getAllStores = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -54,7 +56,7 @@ export const getStoresInRadius = catchAsync(
 
     const cleanedCep = userCep.replace(/\D/g, '');
     if (userCep.length != 8) {
-      throw new Error('Insira um cep válido!');
+      throw new AppError('Insira um cep válido!', 400);
     }
 
     const r = await axios.get(`http://viacep.com.br/ws/${cleanedCep}/json/`);
@@ -87,14 +89,20 @@ export const createStore = catchAsync(
   ) => {
     const r = await axios.get(`http://viacep.com.br/ws/${req.body.cep}/json/`);
 
-    const address = `${r.data.logradouro} ${req.body.numero}`;
-    const coordinates = await geocodeCep(address);
-
-    if (coordinates instanceof Error || !coordinates) {
-      return next(coordinates);
+    // Erro se o cep for inválido
+    if (r.data.erro === 'true') {
+      return next(new AppError('Erro ao receber localização da loja!', 400));
     }
 
+    //Pegar coordenadas geográficas pelo endereço
+    const address = `${r.data.logradouro} ${req.body.numero} ${r.data.localidade}`;
+    const coordinates = await geocodeCep(address);
+
+    //Criar objeto Loja
     const { latitude, longitude } = coordinates;
+
+    //Tirar log
+    console.log(`${latitude} ${longitude}`);
     const storeData: createStoreBody = {
       nome: req.body.nome,
       endereço: r.data.logradouro,
@@ -104,7 +112,10 @@ export const createStore = catchAsync(
       bairro: r.data.bairro,
       localidade: r.data.localidade,
       uf: r.data.uf,
-      location: [longitude, latitude],
+      location: {
+        type: 'Point',
+        coordinates: [longitude, latitude],
+      },
     };
 
     const newStore = await Store.create(storeData);
@@ -126,7 +137,7 @@ export const updateStore = catchAsync(
     const store = await Store.findByIdAndUpdate(id, req.body);
 
     if (!store) {
-      return next(new Error('Nenhuma loja encontrada com essa ID!'));
+      return next(new AppError('Nenhuma loja encontrada com essa ID!', 400));
     }
   },
 );

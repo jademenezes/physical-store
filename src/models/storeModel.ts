@@ -17,8 +17,8 @@ const storeSchema = new mongoose.Schema({
   },
   complemento: String,
   bairro: String,
-  Localidade: String,
-  UF: String,
+  localidade: String,
+  uf: String,
   location: {
     type: {
       type: String,
