@@ -8,7 +8,7 @@ import axios from 'axios';
 
 import Store from '../models/storeModel';
 import { RequestBodyStore } from '../types/updateStore';
-import createStoreBody from '../types/createStoreBody';
+import { StoreBody, createStoreInterface } from '../types/createStoreBody';
 import catchAsync from '../utils/catchAsync';
 import UserResponseData from '../types/userResponseData';
 import geocoder from '../services/geocoder';
@@ -83,7 +83,7 @@ export const getStoresInRadius = catchAsync(
 
 export const createStore = catchAsync(
   async (
-    req: Request<{}, {}, createStoreBody>,
+    req: Request<{}, {}, StoreBody>,
     res: Response,
     next: NextFunction,
   ) => {
@@ -103,12 +103,14 @@ export const createStore = catchAsync(
 
     //Tirar log
     console.log(`${latitude} ${longitude}`);
-    const storeData: createStoreBody = {
+    const storeData: createStoreInterface = {
       nome: req.body.nome,
-      endereço: r.data.logradouro,
-      numero: req.body.numero,
-      complemento: req.body.complemento,
-      cep: req.body.cep,
+      endereço: {
+        logradouro: r.data.logradouro as string,
+        numero: req.body.numero,
+        complemento: req.body.complemento,
+        cep: req.body.cep,
+      },
       bairro: r.data.bairro,
       localidade: r.data.localidade,
       uf: r.data.uf,
@@ -139,5 +141,14 @@ export const updateStore = catchAsync(
     if (!store) {
       return next(new AppError('Nenhuma loja encontrada com essa ID!', 400));
     }
+  },
+);
+
+export const deleteStore = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+    await Store.findByIdAndDelete(id);
+
+    res.status(204).send();
   },
 );

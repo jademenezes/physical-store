@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   createStore,
+  deleteStore,
   getAllStores,
   getStoresInRadius,
   updateStore,
@@ -10,7 +11,8 @@ const router = Router();
 
 router.route('/').get(getAllStores).post(createStore);
 
-router.route('/:id').patch(updateStore);
+router.route('/:id').patch(updateStore).delete(deleteStore);
+
 router.get('/:cep', getStoresInRadius);
 
 export default router;

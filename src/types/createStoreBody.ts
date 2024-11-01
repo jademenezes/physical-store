@@ -1,9 +1,18 @@
-export default interface StoreBody {
+export interface StoreBody {
   nome: string;
-  endereço: string;
-  numero: number;
   cep: string;
-  complemento: string;
+  numero: number;
+  complemento?: string;
+}
+
+export interface createStoreInterface {
+  nome: string;
+  endereço: {
+    logradouro: string;
+    numero: number;
+    complemento?: string;
+    cep: string;
+  };
   bairro: string;
   localidade: string;
   uf: string;

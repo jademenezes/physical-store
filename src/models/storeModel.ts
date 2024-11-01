@@ -1,21 +1,33 @@
 import mongoose from 'mongoose';
+import Adress from '../types/addressInterface';
+import Store from '../types/storeInterface';
 
-const storeSchema = new mongoose.Schema({
+const addressSchema = new mongoose.Schema<Adress>({
+  logradouro: {
+    type: String,
+    required: true,
+  },
+  numero: {
+    type: String,
+    required: true,
+  },
+  complemento: String,
+  cep: {
+    type: String,
+    required: true,
+  },
+});
+
+const storeSchema = new mongoose.Schema<Store>({
   nome: {
     type: String,
     required: [true, 'Loja deve ter um nome!'],
     trim: true,
   },
-  cep: {
-    type: Number,
-    required: [true, 'Digite um CEP para a loja!'],
+  endereço: {
+    type: addressSchema,
+    required: true,
   },
-  endereço: String,
-  numero: {
-    type: Number,
-    required: [true, 'Digite o número da loja!'],
-  },
-  complemento: String,
   bairro: String,
   localidade: String,
   uf: String,
@@ -30,6 +42,17 @@ const storeSchema = new mongoose.Schema({
 });
 
 storeSchema.index({ location: '2dsphere' });
+//index para tornar o endereço unico
+storeSchema.index(
+  {
+    'endereço.logradouro': 1,
+    'endereço.numero': 1,
+    'endereço.cep': 1,
+  },
+  {
+    unique: true,
+  },
+);
 
 const Store = mongoose.model('Store', storeSchema);
 
