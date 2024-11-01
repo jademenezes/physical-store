@@ -13,7 +13,7 @@ Crie um arquivo _.env_ na raiz do projeto, seguindo o _.env-example_, e adicione
 
 **exemplo**:
 
-> MAPBOX_API_KEY=**Sua_chave_API**
+> MAPBOX_API_KEY=**Sua_chave_API**\
 > DATABASE=mongodb+srv://**usuário**:**senha**@servidor.mongodb.net/bancoDeDados'
 
 ## Inicializando o servidor
