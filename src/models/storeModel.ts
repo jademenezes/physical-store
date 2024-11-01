@@ -19,6 +19,7 @@ const addressSchema = new mongoose.Schema<Adress>({
   },
 });
 
+//Schema da loja
 const storeSchema = new mongoose.Schema<Store>({
   nome: {
     type: String,

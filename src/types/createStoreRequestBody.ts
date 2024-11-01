@@ -1,3 +1,4 @@
+//Estrutura de dados para o Body da requisição na função createStore
 export interface StoreBody {
   nome: string;
   cep: string;
@@ -5,6 +6,7 @@ export interface StoreBody {
   complemento?: string;
 }
 
+//Estrutura para o objeto que será utilizado para criar uma loja no BD
 export interface CreateStoreInterface {
   nome: string;
   endereço: {
