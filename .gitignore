@@ -1,3 +1,4 @@
 node_modules/*
 .env
-src/dev-data/*
+src/dev-data/
+src/logs

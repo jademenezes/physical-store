@@ -13,6 +13,7 @@ import catchAsync from '../utils/catchAsync';
 import UserResponseData from '../types/userResponseData';
 import geocoder from '../services/geocoder';
 import AppError from '../utils/appError';
+import logger from '../config/logger';
 
 //Pegar coordenadas utilizando string de endereço
 const geocodeCep = async (address: string) => {
@@ -20,11 +21,13 @@ const geocodeCep = async (address: string) => {
     const response = await geocoder.geocode(address);
 
     if (!response || response.length === 1) {
+      logger.error('endereço sem sem resultados', { address });
       throw new AppError('Não foram encontrados resultados para o cep.', 500);
     }
 
     const { latitude, longitude } = response[0];
     if (!latitude || !longitude) {
+      logger.error('Erro buscando coordenadas', { latitude, longitude });
       throw new AppError('Erro ao achar as coordenadas.', 500);
     }
     const coordinates = {
@@ -41,8 +44,10 @@ const geocodeCep = async (address: string) => {
 // Get Todas as lojas no banco
 export const getAllStores = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('Recebido request para todas as lojas do banco');
     const lojas = await Store.find();
 
+    logger.info('Lojas encontradas', { lojasCount: lojas.length });
     res.status(200).json({
       status: 'success',
       lojas,
@@ -53,13 +58,20 @@ export const getAllStores = catchAsync(
 // Get lojas em 100km de um cep
 export const getStoresInRadius = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('Recebido request para lojas no raio de 100km', {
+      cep: (req as Request<{ cep: string }>).params.cep,
+    });
     // Tratar cep recebido nos parametros
     const userCep = (req as Request<{ cep: string }>).params.cep;
 
-    if (!userCep) throw new Error('insira um cep!');
+    if (!userCep) {
+      logger.error('CEP não inserido!');
+      throw new AppError('insira um cep!', 400);
+    }
 
     const cleanedCep = userCep.replace(/\D/g, '');
-    if (userCep.length != 8) {
+    if (cleanedCep.length != 8) {
+      logger.error('Formato do CEP inválido!', { cep: cleanedCep });
       throw new AppError('Insira um cep válido!', 400);
     }
 
@@ -105,13 +117,19 @@ export const getStoresInRadius = catchAsync(
       },
     ]);
 
+    if (!lojas) {
+      logger.error('Erro buscando lojas');
+      throw new AppError('Erro ao buscar lojas.', 404);
+    }
     if (lojas.length === 0) {
+      logger.info('Não foram encontradas lojas', { cep: userCep });
       return res.status(200).json({
         status: 'success',
         message: 'Sinto muito, não encontramos lojas próximas de você.',
       });
     }
 
+    logger.info('Lojas encontradas', { lojasCount: lojas.length });
     return res.status(200).json({
       status: 'success',
       lojas,
@@ -126,10 +144,13 @@ export const createStore = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
+    logger.info('Recebido o request para criar uma loja');
+
     const r = await axios.get(`http://viacep.com.br/ws/${req.body.cep}/json/`);
 
     // Erro se o cep for inválido
     if (r.data.erro === 'true') {
+      logger.error('Erro recebendo localização', { r });
       return next(new AppError('Erro ao receber localização da loja!', 400));
     }
 
@@ -161,6 +182,7 @@ export const createStore = catchAsync(
 
     const newStore = await Store.create(storeData);
 
+    logger.info('Loja criada com sucesso', { newStore });
     res.status(201).json({
       status: 'success',
       loja: newStore,
@@ -175,10 +197,13 @@ export const updateStore = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
+    logger.info('Recebido request para atualizar loja');
+
     const { id } = req.params;
     const store = await Store.findByIdAndUpdate(id, req.body);
 
     if (!store) {
+      logger.error('Não foram encontradas lojas com essa ID', { id });
       return next(new AppError('Nenhuma loja encontrada com essa ID!', 400));
     }
   },
@@ -187,6 +212,8 @@ export const updateStore = catchAsync(
 //Deletar loja
 export const deleteStore = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('Recebido requisição para deletar loja');
+
     const { id } = req.params;
     await Store.findByIdAndDelete(id);
 

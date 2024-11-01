@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import app from './app';
 import { SERVER_PORT, MONGODB } from './config/config';
+import logger from './config/logger';
 
 const DB = MONGODB.DATABASE.replace('<USERNAME>', MONGODB.DB_USERNAME).replace(
   '<PASSWORD>',
@@ -8,9 +9,9 @@ const DB = MONGODB.DATABASE.replace('<USERNAME>', MONGODB.DB_USERNAME).replace(
 );
 
 mongoose.connect(DB).then(() => {
-  console.log('Database connection successful!');
+  logger.info('Conexão com o Banco de Dados bem sucedida!');
 });
 
 app.listen(SERVER_PORT, () => {
-  console.log(`Server running on port ${SERVER_PORT}`);
+  logger.info(`Servidor ativo na porta ${SERVER_PORT}`);
 });
