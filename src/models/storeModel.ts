@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Adress from '../types/addressInterface';
 import Store from '../types/storeInterface';
 
+//Schema para endereço
 const addressSchema = new mongoose.Schema<Adress>({
   logradouro: {
     type: String,

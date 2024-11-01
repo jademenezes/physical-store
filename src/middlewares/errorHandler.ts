@@ -15,17 +15,6 @@ const errorHandler = (
   res: Response,
   next: NextFunction,
 ) => {
-  //improve error log with winston
-  // console.log(err);
-
-  // if (err.code === 11000) {
-  //   // MongoDB duplicate key error code
-  //   console.log(err);
-  //   res.status(400).json({
-  //     status: 'error',
-  //     message: 'Já existe uma loja neste endereço!',
-  //   });
-  // } else {
   //Handling generics
   const statusCode = Number(err.statusCode) || 500;
   const message = err.message || 'Erro interno do servidor.';

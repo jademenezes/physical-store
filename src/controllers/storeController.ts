@@ -14,6 +14,7 @@ import UserResponseData from '../types/userResponseData';
 import geocoder from '../services/geocoder';
 import AppError from '../utils/appError';
 
+//Pegar coordenadas utilizando string de endereço
 const geocodeCep = async (address: string) => {
   try {
     const response = await geocoder.geocode(address);
@@ -37,6 +38,7 @@ const geocodeCep = async (address: string) => {
   }
 };
 
+// Get Todas as lojas no banco
 export const getAllStores = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const lojas = await Store.find();
@@ -48,8 +50,10 @@ export const getAllStores = catchAsync(
   },
 );
 
+// Get lojas em 100km de um cep
 export const getStoresInRadius = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    // Tratar cep recebido nos parametros
     const userCep = (req as Request<{ cep: string }>).params.cep;
 
     if (!userCep) throw new Error('insira um cep!');
@@ -59,28 +63,63 @@ export const getStoresInRadius = catchAsync(
       throw new AppError('Insira um cep válido!', 400);
     }
 
+    //Requisição para API ViaCep
     const r = await axios.get(`http://viacep.com.br/ws/${cleanedCep}/json/`);
 
     const userResponse: UserResponseData = {
-      cep: r.data.cep,
       logradouro: r.data.logradouro,
-      bairro: r.data.localidade,
       localidade: r.data.localidade,
-      uf: r.data.uf,
     };
 
-    const coord = await geocodeCep(userResponse.logradouro);
+    //Processar latitude e longitude
+    const coord = await geocodeCep(
+      `${userResponse.logradouro} ${userResponse.localidade}`,
+    );
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        userResponse,
-        coordinates: coord,
+    // Fazer Query das lojas por distância
+    const lojas = await Store.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [coord.longitude, coord.latitude],
+          },
+          distanceField: 'distance',
+          maxDistance: 100000,
+          spherical: true,
+        },
       },
+      {
+        $addFields: {
+          distanciaKm: { $round: [{ $divide: ['$distance', 1000] }, 2] },
+        },
+      },
+      { $sort: { distance: 1 } },
+      {
+        $project: {
+          _id: 0,
+          location: 0,
+          __v: 0,
+          distance: 0,
+        },
+      },
+    ]);
+
+    if (lojas.length === 0) {
+      return res.status(200).json({
+        status: 'success',
+        message: 'Sinto muito, não encontramos lojas próximas de você.',
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      lojas,
     });
   },
 );
 
+// Criar loja
 export const createStore = catchAsync(
   async (
     req: Request<{}, {}, StoreBody>,
@@ -129,6 +168,7 @@ export const createStore = catchAsync(
   },
 );
 
+// Atualizar loja existente
 export const updateStore = catchAsync(
   async (
     req: Request<ParamsDictionary, {}, RequestBodyStore>,
@@ -144,6 +184,7 @@ export const updateStore = catchAsync(
   },
 );
 
+//Deletar loja
 export const deleteStore = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params;
