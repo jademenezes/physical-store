@@ -2,7 +2,7 @@ export interface RequestParamsStore {
   id: string;
 }
 
-export interface RequestBodyStore {
+export interface UpdateStoreBody {
   nome?: string;
   cep?: number;
   numero?: number;

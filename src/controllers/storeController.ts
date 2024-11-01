@@ -7,8 +7,11 @@ import {
 import axios from 'axios';
 
 import Store from '../models/storeModel';
-import { RequestBodyStore } from '../types/updateStore';
-import { StoreBody, createStoreInterface } from '../types/createStoreBody';
+import { UpdateStoreBody } from '../types/updateStoreRequestBody';
+import {
+  StoreBody,
+  CreateStoreInterface,
+} from '../types/createStoreRequestBody';
 import catchAsync from '../utils/catchAsync';
 import UserResponseData from '../types/userResponseData';
 import geocoder from '../services/geocoder';
@@ -163,7 +166,7 @@ export const createStore = catchAsync(
 
     //Tirar log
     console.log(`${latitude} ${longitude}`);
-    const storeData: createStoreInterface = {
+    const storeData: CreateStoreInterface = {
       nome: req.body.nome,
       endereço: {
         logradouro: r.data.logradouro as string,
@@ -193,7 +196,7 @@ export const createStore = catchAsync(
 // Atualizar loja existente
 export const updateStore = catchAsync(
   async (
-    req: Request<ParamsDictionary, {}, RequestBodyStore>,
+    req: Request<ParamsDictionary, {}, UpdateStoreBody>,
     res: Response,
     next: NextFunction,
   ) => {

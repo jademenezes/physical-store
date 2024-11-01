@@ -5,7 +5,7 @@ export interface StoreBody {
   complemento?: string;
 }
 
-export interface createStoreInterface {
+export interface CreateStoreInterface {
   nome: string;
   endereço: {
     logradouro: string;
