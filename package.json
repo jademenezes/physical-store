@@ -13,7 +13,7 @@
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "mongoose": "^8.7.2",
+    "mongoose": "^8.9.5",
     "node-geocoder": "^4.4.0",
     "winston": "^3.15.0"
   },
